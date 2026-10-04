@@ -1,0 +1,11 @@
+{
+  "name": "boward-research",
+  "private": true,
+  "workspaces": [
+    "api",
+    "web"
+  ],
+  "scripts": {
+    "typecheck": "npm run typecheck --workspaces"
+  }
+}

@@ -1,0 +1,58 @@
+services:
+  db:
+    image: postgis/postgis:17-3.5
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: app
+      POSTGRES_DB: app
+    ports:
+      - "5433:5432" # 5433 on the host so it doesn't clash with a locally installed Postgres
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      # Check over TCP: on first boot the image runs a socket-only init server that would pass too early.
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U app -d app"]
+      interval: 2s
+      retries: 30
+
+  api:
+    build: .
+    command: sh -c "npm run db:migrate -w api && npm run dev -w api"
+    environment:
+      DATABASE_URL: postgres://app:app@db:5432/app
+      BETTER_AUTH_URL: http://localhost:5173
+      BETTER_AUTH_SECRET: dev-only-secret-change-me-before-deploying
+    volumes:
+      - ./api/drizzle:/app/api/drizzle # generated migrations land in the repo
+    depends_on:
+      db:
+        condition: service_healthy
+    develop:
+      watch:
+        - action: sync
+          path: ./api/src
+          target: /app/api/src
+        - action: rebuild
+          path: ./api/package.json
+        - action: rebuild
+          path: ./package-lock.json
+
+  web:
+    build: .
+    command: npm run dev -w web
+    ports:
+      - "5173:5173"
+    depends_on:
+      - api
+    develop:
+      watch:
+        - action: sync
+          path: ./web/src
+          target: /app/web/src
+        - action: rebuild
+          path: ./web/package.json
+        - action: rebuild
+          path: ./package-lock.json
+
+volumes:
+  pgdata:
