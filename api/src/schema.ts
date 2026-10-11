@@ -1,4 +1,4 @@
-import { boolean, pgTable, text, timestamp } from "drizzle-orm/pg-core";
+import { boolean, index, pgTable, primaryKey, text, timestamp, uuid } from "drizzle-orm/pg-core";
 
 // The four tables Better Auth needs. Add app tables (pets, listings, ...) below these.
 
@@ -47,3 +47,27 @@ export const verification = pgTable("verification", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow().$onUpdate(() => new Date()),
 });
+
+// One row per "I added you by email". Two users are friends once each has added the other,
+// so a one-sided row works as a pending friend request.
+export const friend = pgTable(
+  "friend",
+  {
+    userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+    friendId: text("friend_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.userId, t.friendId] })],
+);
+
+export const message = pgTable(
+  "message",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    senderId: text("sender_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+    recipientId: text("recipient_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+    text: text("text").notNull(),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (t) => [index("message_conversation_idx").on(t.senderId, t.recipientId, t.createdAt)],
+);

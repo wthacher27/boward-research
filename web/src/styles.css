@@ -84,6 +84,22 @@ header h1 {
   margin: 0;
 }
 
+.actions {
+  display: flex;
+  gap: 8px;
+}
+
+h2 {
+  margin: 24px 0 12px;
+  font-size: 1.1rem;
+}
+
+.success {
+  margin: 0;
+  color: #047857;
+  font-size: 0.9rem;
+}
+
 table {
   width: 100%;
   border-collapse: collapse;
@@ -96,4 +112,144 @@ td {
   border-bottom: 1px solid #e5e7eb;
   text-align: left;
   white-space: nowrap;
+}
+
+td form {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+td input {
+  padding: 4px 6px;
+}
+
+td button {
+  padding: 4px 10px;
+}
+
+td button.link {
+  margin: 0;
+  padding: 0;
+}
+
+.muted {
+  margin: 0;
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+form.inline {
+  display: flex;
+  gap: 8px;
+}
+
+form.inline input {
+  flex: 1;
+  min-width: 0;
+}
+
+.friends {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 640px) {
+  .friends {
+    grid-template-columns: 1fr;
+  }
+}
+
+.people {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.people li {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 6px 0;
+}
+
+.people li button {
+  padding: 4px 10px;
+}
+
+.people li button.link {
+  margin: 0;
+  padding: 0;
+}
+
+.people li button.person {
+  flex: 1;
+  padding: 6px 8px;
+  background: none;
+  color: inherit;
+  text-align: left;
+}
+
+.people li button.person:hover,
+.people li button.person.selected {
+  background: #ecfdf5;
+}
+
+.person-label {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+}
+
+.person-label small {
+  overflow: hidden;
+  color: #6b7280;
+  text-overflow: ellipsis;
+}
+
+.chat {
+  display: grid;
+  gap: 12px;
+}
+
+.chat header {
+  margin: 0;
+}
+
+.chat h2 {
+  margin: 0;
+}
+
+.chat header button.link {
+  margin: 0;
+}
+
+.messages {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  height: 360px;
+  padding: 12px;
+  overflow-y: auto;
+  background: #f9fafb;
+  border-radius: 8px;
+}
+
+.bubble {
+  max-width: 75%;
+  margin: 0;
+  padding: 6px 12px;
+  align-self: flex-start;
+  background: #e5e7eb;
+  border-radius: 14px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.bubble.mine {
+  align-self: flex-end;
+  background: #0f766e;
+  color: #fff;
 }

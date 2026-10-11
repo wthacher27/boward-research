@@ -7,4 +7,6 @@ import * as schema from "./schema";
 export const auth = betterAuth({
   database: drizzleAdapter(db, { provider: "pg", schema }),
   emailAndPassword: { enabled: true },
+  // No email sending is set up yet, so unverified users can switch their email straight away.
+  user: { changeEmail: { enabled: true, updateEmailWithoutVerification: true } },
 });

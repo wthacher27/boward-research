@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { authClient } from "./auth-client";
 
 type LoggedInUser = {
@@ -10,26 +10,57 @@ type LoggedInUser = {
   sessions: number;
 };
 
-export function UsersScreen({ currentUserId }: { currentUserId: string }) {
+export function UsersScreen({
+  currentUserId,
+  onOpenAccount,
+  onOpenFriends,
+}: {
+  currentUserId: string;
+  onOpenAccount: () => void;
+  onOpenFriends: () => void;
+}) {
   const [users, setUsers] = useState<LoggedInUser[]>([]);
+  // The name being typed while you edit your own row; null when not editing.
+  const [draftName, setDraftName] = useState<string | null>(null);
+  const [error, setError] = useState("");
+
+  const load = () =>
+    fetch("/api/users/logged-in")
+      .then((res) => (res.ok ? res.json() : []))
+      .then(setUsers);
 
   useEffect(() => {
-    const load = () =>
-      fetch("/api/users/logged-in")
-        .then((res) => (res.ok ? res.json() : []))
-        .then(setUsers);
     load();
     // Poll so people logging in from other browsers show up without a refresh.
     const timer = setInterval(load, 5000);
     return () => clearInterval(timer);
   }, []);
 
+  function startEditing(name: string) {
+    setDraftName(name);
+    setError("");
+  }
+
+  async function saveName(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    // Better Auth only lets you update your own user, so no extra API route is needed.
+    const { error } = await authClient.updateUser({ name: draftName!.trim() });
+    if (error) return setError(error.message ?? "Couldn't save your name");
+    setDraftName(null);
+    load();
+  }
+
   return (
     <main className="wide">
       <header>
         <h1>Logged-in users ({users.length})</h1>
-        <button onClick={() => authClient.signOut()}>Log out</button>
+        <div className="actions">
+          <button onClick={onOpenFriends}>Friends</button>
+          <button onClick={onOpenAccount}>Account settings</button>
+          <button onClick={() => authClient.signOut()}>Log out</button>
+        </div>
       </header>
+      {error && <p className="error">{error}</p>}
       <table>
         <thead>
           <tr>
@@ -44,8 +75,33 @@ export function UsersScreen({ currentUserId }: { currentUserId: string }) {
           {users.map((u) => (
             <tr key={u.id}>
               <td>
-                {u.name}
-                {u.id === currentUserId && " (you)"}
+                {u.id === currentUserId && draftName !== null ? (
+                  <form onSubmit={saveName}>
+                    <input
+                      value={draftName}
+                      onChange={(e) => setDraftName(e.target.value)}
+                      aria-label="Name"
+                      autoFocus
+                      required
+                    />
+                    <button>Save</button>
+                    <button type="button" className="link" onClick={() => setDraftName(null)}>
+                      Cancel
+                    </button>
+                  </form>
+                ) : (
+                  <>
+                    {u.name}
+                    {u.id === currentUserId && (
+                      <>
+                        {" (you) "}
+                        <button className="link" onClick={() => startEditing(u.name)}>
+                          Edit
+                        </button>
+                      </>
+                    )}
+                  </>
+                )}
               </td>
               <td>{u.email}</td>
               <td>{new Date(u.loggedInAt).toLocaleString()}</td>
